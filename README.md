@@ -1,6 +1,6 @@
 # Tree-Ring Watermarks: Fingerprints for Diffusion Images that are Invisible and Robust
 
-<img src=scripts/teaser.png  width="60%" height="40%">
+<img src=scripts/teaser.png  width="80%" height="60%">
 
 This code is the official implementation of [Tree-Ring Watermarks]().
 
@@ -29,7 +29,7 @@ You can modify arguments to perform attack. For example, for rotation with 75 de
 python run_tree_ring_watermark.py --run_name rotation --w_channel 3 --w_pattern ring --r_degree 75 --start 0 --end 1000 --with_tracking
 ```
 
-For more adversarial cases, see [here](scripts/tree_rings.sh).
+For more adversarial cases, see [here](scripts/tree_ring.sh).
 
 For other watermark types mentioned in the paper, you can check [scripts/](scripts/).
 
