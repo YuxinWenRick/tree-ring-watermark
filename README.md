@@ -2,7 +2,7 @@
 
 <img src=scripts/teaser.png  width="80%" height="60%">
 
-This code is the official implementation of [Tree-Ring Watermarks]().
+This code is the official implementation of [Tree-Ring Watermarks](http://arxiv.org/abs/2305.20030).
 
 If you have any questions, feel free to email Yuxin (<ywen@umd.edu>).
 
