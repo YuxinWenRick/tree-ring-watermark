@@ -9,62 +9,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""
-Simple check list from AllenNLP repo: https://github.com/allenai/allennlp/blob/main/setup.py
-
-To create the package for pypi.
-
-1. Run `make pre-release` (or `make pre-patch` for a patch release) then run `make fix-copies` to fix the index of the
-   documentation.
-
-   If releasing on a special branch, copy the updated README.md on the main branch for your the commit you will make
-   for the post-release and run `make fix-copies` on the main branch as well.
-
-2. Run Tests for Amazon Sagemaker. The documentation is located in `./tests/sagemaker/README.md`, otherwise @philschmid.
-
-3. Unpin specific versions from setup.py that use a git install.
-
-4. Checkout the release branch (v<RELEASE>-release, for example v4.19-release), and commit these changes with the
-   message: "Release: <RELEASE>" and push.
-
-5. Wait for the tests on main to be completed and be green (otherwise revert and fix bugs)
-
-6. Add a tag in git to mark the release: "git tag v<RELEASE> -m 'Adds tag v<RELEASE> for pypi' "
-   Push the tag to git: git push --tags origin v<RELEASE>-release
-
-7. Build both the sources and the wheel. Do not change anything in setup.py between
-   creating the wheel and the source distribution (obviously).
-
-   For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
-   (this will build a wheel for the python version you use to build it).
-
-   For the sources, run: "python setup.py sdist"
-   You should now have a /dist directory with both .whl and .tar.gz source versions.
-
-8. Check that everything looks correct by uploading the package to the pypi test server:
-
-   twine upload dist/* -r pypitest
-   (pypi suggest using twine as other methods upload files via plaintext.)
-   You may have to specify the repository url, use the following command then:
-   twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
-
-   Check that you can install it in a virtualenv by running:
-   pip install -i https://testpypi.python.org/pypi tree-ring-watermark
-
-   Check you can run the following commands:
-   python -c "from tree-ring-watermark import pipeline; classifier = pipeline('text-classification'); print(classifier('What a nice release'))"
-   python -c "from tree-ring-watermark import *"
-
-9. Upload the final version to actual pypi:
-   twine upload dist/* -r pypi
-
-10. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
-
-11. Run `make post-release` (or, for a patch release, `make post-patch`). If you were on a branch for the release,
-    you need to go back to main before executing this.
-"""
-
 import re
 from distutils.core import Command
 
@@ -194,13 +138,13 @@ setup(
 # 4. Run the following commands in the top-level directory:
 #      python setup.py bdist_wheel
 #      python setup.py sdist
-# 5. Upload the package to the pypi test server first:
+# 5. (You can skip this for now) Upload the package to the pypi test server first:
 #      twine upload dist/* -r pypitest
 #      twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 # 6. Check that you can install it in a virtualenv by running:
-#      pip install -i https://testpypi.python.org/pypi tree-ring-watermark
-#      tree-ring-watermark env
-#      tree-ring-watermark test
+#      pip install -i https://testpypi.python.org/pypi tree_ring_watermark
+#      tree_ring_watermark env
+#      tree_ring_watermark test
 # 7. Upload the final version to actual pypi:
 #      twine upload dist/* -r pypi
 # 8. Add release notes to the tag in github once everything is looking hunky-dory.
