@@ -118,7 +118,7 @@ class DepsTableUpdateCommand(Command):
     description = "build runtime dependency table"
     user_options = [
         # format: (long option, short option, description).
-        ("dep-table-update", None, "updates src/tree-ring-watermark/dependency_versions_table.py"),
+        ("dep-table-update", None, "updates src/tree_ring_watermark/dependency_versions_table.py"),
     ]
 
     def initialize_options(self):
@@ -138,7 +138,7 @@ class DepsTableUpdateCommand(Command):
             "}",
             "",
         ]
-        target = "src/tree-ring-watermark/dependency_versions_table.py"
+        target = "src/tree_ring_watermark/dependency_versions_table.py"
         print(f"updating {target}")
         with open(target, "w", encoding="utf-8", newline="\n") as f:
             f.write("\n".join(content))
@@ -149,14 +149,14 @@ extras = {}
 
 install_requires = [
     deps["torch"],
-    deps["tree-ring-watermark"],
+    deps["diffusers"],
     deps["transformers"],
 ]
 
 setup(
-    name="tree-ring-watermark",
+    name="tree_ring_watermark",
     version="0.0.1",
-    description="tree-ring-watermark",
+    description="tree_ring_watermark",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     keywords="deep learning",

@@ -2,8 +2,7 @@
 # 1. modify the `_deps` dict in setup.py
 # 2. run `make deps_table_update``
 deps = {
-    "tree-ring-watermark": "tree-ring-watermark",
-    "accelerate": "accelerate",
-    "transformers": "transformers",
-    "torch": "torch",
+    "torch": "torch==1.13.0",
+    "transformers": "transformers==4.23.1",
+    "diffusers": "diffusers==0.11.1",
 }
