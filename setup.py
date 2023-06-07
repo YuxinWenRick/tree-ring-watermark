@@ -75,10 +75,9 @@ from setuptools import find_packages, setup
 # 1. all dependencies should be listed here with their version requirements if any
 # 2. once modified, run: `make deps_table_update` to update src/tree-ring-watermark/dependency_versions_table.py
 _deps = [
-    "tree-ring-watermark",
-    "accelerate",
-    "transformers",
-    "torch",
+   "torch==1.13.0",
+   "transformers==4.23.1",
+   "diffusers==0.11.1",
 ]
 
 # this is a lookup table with items like:
