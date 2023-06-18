@@ -1,6 +1,5 @@
 import torch
 from typing import Union, List, Tuple
-from diffusers import DiffusionPipeline
 import numpy as np
 
 def _circle_mask(size=64, r=10, x_offset=0, y_offset=0):
@@ -16,7 +15,15 @@ def _circle_mask(size=64, r=10, x_offset=0, y_offset=0):
 def _get_pattern(shape, pipe, w_pattern='ring', w_seed=999999):
     g = torch.Generator(device=pipe.device)
     g.manual_seed(w_seed)
-    gt_init = pipe.get_random_latents(generator=g)
+    gt_init = pipe.prepare_latents(
+            1,
+            pipe.unet.in_channels,
+            512,
+            512,
+            pipe.unet.dtype,
+            pipe.device,
+            g
+        )
 
     if 'rand' in w_pattern:
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
@@ -53,7 +60,15 @@ def get_noise(shape: Union[torch.Size, List, Tuple], pipe) -> Tuple[torch.Tensor
     w_key = _get_pattern(shape, pipe, w_pattern=w_pattern, w_seed=w_seed).to(pipe.device)
 
     # inject watermark
-    init_latents = pipe.get_random_latents()
+    init_latents = pipe.prepare_latents(
+            1,
+            pipe.unet.in_channels,
+            512,
+            512,
+            pipe.unet.dtype,
+            pipe.device,
+            None
+        )
     init_latents_fft = torch.fft.fftshift(torch.fft.fft2(init_latents), dim=(-1, -2))
     init_latents_fft[w_mask] = w_key[w_mask].clone()
     init_latents = torch.fft.ifft2(torch.fft.ifftshift(init_latents_fft, dim=(-1, -2))).real

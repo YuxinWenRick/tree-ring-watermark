@@ -3,6 +3,7 @@ import torch
 from torchvision import transforms
 import PIL
 from typing import Union
+from diffusers import DDIMInverseScheduler
 
 def _transform_img(image, target_size=512):
     tform = transforms.Compose(
@@ -21,20 +22,24 @@ def detect(image: Union[PIL.Image.Image, torch.Tensor, np.ndarray], pipe, w_key,
     threshold = 77
 
     # ddim inversion
-    tester_prompt = ''
-    text_embeddings = pipe.get_text_embedding(tester_prompt)
-    img = _transform_img(image).unsqueeze(0).to(text_embeddings.dtype).to(pipe.device)
-    image_latents = pipe.get_image_latents(img, sample=False)
-    inverted_latents = pipe.forward_diffusion(
+    curr_scheduler = pipe.scheduler
+    pipe.scheduler = DDIMInverseScheduler.from_config(pipe.scheduler.config)
+    img = _transform_img(image).unsqueeze(0).to(pipe.unet.dtype).to(pipe.device)
+    image_latents = pipe.vae.encode(img).latent_dist.mode() * 0.18215
+    inverted_latents = pipe(
+            prompt='',
             latents=image_latents,
-            text_embeddings=text_embeddings,
             guidance_scale=1,
             num_inference_steps=detection_time_num_inference,
+            output_type='latent',
         )
-    
+    inverted_latents = inverted_latents.images
+
     # calculate the distance
     inverted_latents_fft = torch.fft.fftshift(torch.fft.fft2(inverted_latents), dim=(-1, -2))
     dist = torch.abs(inverted_latents_fft[w_mask] - w_key[w_mask]).mean().item()
+
+    pipe.scheduler = curr_scheduler
 
     if dist <= threshold:
         return True
