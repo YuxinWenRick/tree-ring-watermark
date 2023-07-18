@@ -44,8 +44,7 @@ deps = {b: a for a, b in (re.findall(r"^(([^!=<>~]+)(?:[!=<>~].*)?$)", x)[0] for
 #
 # You can then feed this for example to `pip`:
 #
-# pip install -U $(python -c 'import sys; from tree-ring-watermark.dependency_versions_table import deps; \
-# print(" ".join([ deps[x] for x in sys.argv[1:]]))' tokenizers datasets)
+# pip install -U $(python -c 'import sys; from tree-ring-watermark.dependency_versions_table import deps; print(" ".join([ deps[x] for x in sys.argv[1:]]))' tokenizers datasets)
 #
 
 

@@ -221,6 +221,10 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
 
     @torch.inference_mode()
     def get_image_latents(self, image, sample=True, rng_generator=None):
+        '''
+        Input : image
+        Output : latents, which is encoded image
+        '''
         encoding_dist = self.vae.encode(image).latent_dist
         if sample:
             encoding = encoding_dist.sample(generator=rng_generator)

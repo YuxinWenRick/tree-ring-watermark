@@ -61,7 +61,7 @@ def main(args):
         ### generation
         # generation without watermarking
         set_random_seed(seed)
-        init_latents_no_w = pipe.get_random_latents()
+        init_latents_no_w = pipe.get_random_latents() # setting random x without WM
         outputs_no_w = pipe(
             current_prompt,
             num_images_per_prompt=args.num_images,
@@ -71,7 +71,7 @@ def main(args):
             width=args.image_length,
             latents=init_latents_no_w,
             )
-        orig_image_no_w = outputs_no_w.images[0]
+        orig_image_no_w = outputs_no_w.images[0] # image generated at the first, without WM
         
         # generation with watermarking
         if init_latents_no_w is None:
@@ -81,10 +81,10 @@ def main(args):
             init_latents_w = copy.deepcopy(init_latents_no_w)
 
         # get watermarking mask
-        watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
+        watermarking_mask = get_watermarking_mask(init_latents_w, args, device) # Get initial 
 
         # inject watermark
-        init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args)
+        init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args) # Saves latent with WM
 
         outputs_w = pipe(
             current_prompt,
@@ -94,7 +94,7 @@ def main(args):
             height=args.image_length,
             width=args.image_length,
             latents=init_latents_w,
-            )
+            ) # Not a tensor, like a pipeline structure
         orig_image_w = outputs_w.images[0]
 
         ### test watermark

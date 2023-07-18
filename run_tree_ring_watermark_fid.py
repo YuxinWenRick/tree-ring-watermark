@@ -6,7 +6,7 @@ import json
 
 import torch
 
-from inverse_stable_diffusion import InversableStableDiffusionPipeline
+from inverse_stable_diffusion_orig import InversableStableDiffusionPipeline
 from diffusers import DPMSolverMultistepScheduler
 from optim_utils import *
 from io_utils import *
