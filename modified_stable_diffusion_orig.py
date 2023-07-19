@@ -197,8 +197,6 @@ class ModifiedStableDiffusionPipeline(StableDiffusionPipeline):
         # 10. Convert to PIL
         if output_type == "pil":
             image = self.numpy_to_pil(image)
-        if output_type == "numpy":
-            image = image
 
         if not return_dict:
             return (image, has_nsfw_concept)

@@ -12,18 +12,6 @@ from diffusers import DPMSolverMultistepScheduler
 import open_clip
 from optim_utils import *
 from io_utils import *
-from noise_optimizer import edcorrector
-
-def compare_latents(z, z_comp):
-    """
-    parameters
-    z : latent variables after calculation
-    z_comp : latent vatiables for comparison
-
-    returns norm(z-z_comp)/norm(z_comp)
-    """
-    diff = z - z_comp
-    return torch.norm(diff)/torch.norm(z_comp)
 
 def main(args):
     table = None
@@ -64,9 +52,6 @@ def main(args):
     no_w_metrics = []
     w_metrics = []
 
-    # Defining corrector : LKH
-    decoder_corrector = edcorrector(encoder=pipe.get_image_latents, decoder=pipe.decode_image, lamb=0.0)
-
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
         
@@ -97,7 +82,7 @@ def main(args):
         # get watermarking mask
         watermarking_mask = get_watermarking_mask(init_latents_w, args, device) # Get initial 
 
-        # inject watermark, injection occurs on frequency domain
+        # inject watermark
         init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args) # Saves latent with WM
 
         outputs_w = pipe(
@@ -108,7 +93,7 @@ def main(args):
             height=args.image_length,
             width=args.image_length,
             latents=init_latents_w,
-            ) # Not a single tensor, a pipeline structure containing "images", "nsfw_content_detected", "init_latents"
+            ) # Not a tensor, like a pipeline structure
         orig_image_w = outputs_w.images[0]
 
         ### test watermark
@@ -136,11 +121,6 @@ def main(args):
             guidance_scale=1,
             num_inference_steps=args.test_num_inference_steps,
         )
-
-        # Starting latent analysis
-        print(f"compare noise : {compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))}")
-        image_latents_w_modified = decoder_corrector(pipe.decode_image(image_latents_w)) # input as the image
-        print(f"noise after optimization : {compare_latents(image_latents_w, image_latents_w_modified)}")
 
         # eval
         no_w_metric, w_metric = eval_watermark(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args)
