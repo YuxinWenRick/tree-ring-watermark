@@ -7,6 +7,7 @@ from sklearn import metrics
 
 import torch
 
+#from inverse_stable_diffusion_smh import InversableStableDiffusionPipeline
 from inverse_stable_diffusion import InversableStableDiffusionPipeline
 from diffusers import DPMSolverMultistepScheduler
 import open_clip
@@ -65,7 +66,7 @@ def main(args):
     w_metrics = []
 
     # Defining corrector : LKH
-    decoder_corrector = edcorrector(encoder=pipe.get_image_latents, decoder=pipe.decode_image, lamb=0.0)
+    decoder_corrector = edcorrector(encoder=pipe.get_image_latents, decoder=pipe.decode_image, lamb=0.0, num_iters=100, lr=0.001)
 
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed

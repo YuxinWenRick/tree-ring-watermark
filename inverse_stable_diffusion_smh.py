@@ -11,7 +11,7 @@ from diffusers.pipelines.stable_diffusion.safety_checker import \
     StableDiffusionSafetyChecker
 from diffusers.schedulers import DDIMScheduler,PNDMScheduler, LMSDiscreteScheduler
 
-from modified_stable_diffusion import ModifiedStableDiffusionPipeline
+from modified_stable_diffusion_smh import ModifiedStableDiffusionPipeline
 
 
 ### credit to: https://github.com/cccntu/efficient-prompt-to-prompt
@@ -189,6 +189,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
                 eps_xt=noise_pred,
             )
 
+            print(f"check latent shape in smh\n : {latents.shape}")
             # Differential correction
             torch.set_grad_enabled(True)
             latents = self.differential_correction(latents, t, prev_timestep, text_embeddings, latents_t)
