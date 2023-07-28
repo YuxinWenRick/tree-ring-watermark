@@ -67,12 +67,11 @@ def main(args):
 
     # Defining corrector : LKH
     decoder_corrector = edcorrector(
-        encoder=pipe.get_image_latents, 
-        decoder=pipe.decode_image, 
+        pipe = pipe,
         lamb=0., 
-        num_iters=30, 
+        num_iters=300, 
         lr=1e-3,
-    )
+    ) # Not used for now, check : 230728, 1642
     accuracy = []
 
     for i in tqdm(range(args.start, args.end)):
@@ -146,7 +145,7 @@ def main(args):
         )
 
         # Starting latent analysis
-        image_latents_w_modified = decoder_corrector(pipe.decode_image(image_latents_w)) # input as the image
+        image_latents_w_modified = pipe.edcorrector(pipe.decode_image(image_latents_w)) # input as the image
         original_error = compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))
         corrected_error = compare_latents(image_latents_w, image_latents_w_modified)
         print(f"compare error : {original_error}")

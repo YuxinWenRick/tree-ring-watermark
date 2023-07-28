@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Callable, List, Optional, Union, Tuple
+import copy
 
-#import copy
 import torch
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
 
@@ -186,7 +186,36 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             )
         return latents
 
-    
+    def edcorrector(self, x):
+        """
+        INPUT
+        x : image data (1, 3, 512, 512) -> given data
+        OUTPUT
+        z : modified latent data (1, 4, 64, 64)
+
+        Goal : minimize norm(e(x)-z) and norm(d(z)-x)
+        """
+        unet_copy = copy.deepcopy(self.unet).float()
+
+        z = self.get_image_latents(x).clone() # initial z
+        z.requires_grad_(True)
+        loss_function = torch.nn.MSELoss(reduction='sum')
+        optimizer = torch.optim.SGD([z], lr=self.lr)
+
+        for i in range(self.num_iters):
+            out = self.net(x, 0, None)
+            out = self.pipe.scheduler.convert_model_output(out, 0, z)
+            z_pred = self.pipe.scheduler.dpm_solver_first_order_update(out, 0, 0, z)
+            loss = loss_function(z_pred, self.encoder(x))
+            print(f"t: {t}, Iteration {i}, Loss: {loss.item():.3f}")
+            if loss.item() < 0.001:
+                break
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        return z.half()
+
     @torch.inference_mode()
     def decode_image(self, latents: torch.FloatTensor, **kwargs):
         scaled_latents = 1 / 0.18215 * latents
