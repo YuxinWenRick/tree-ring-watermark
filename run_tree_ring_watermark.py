@@ -66,7 +66,13 @@ def main(args):
     w_metrics = []
 
     # Defining corrector : LKH
-    decoder_corrector = edcorrector(encoder=pipe.get_image_latents, decoder=pipe.decode_image, lamb=0.0, num_iters=100, lr=0.001)
+    decoder_corrector = edcorrector(
+        encoder=pipe.get_image_latents, 
+        decoder=pipe.decode_image, 
+        lamb=0.0, 
+        num_iters=30, 
+        lr=0.001
+    )
 
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
