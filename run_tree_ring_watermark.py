@@ -69,10 +69,11 @@ def main(args):
     decoder_corrector = edcorrector(
         encoder=pipe.get_image_latents, 
         decoder=pipe.decode_image, 
-        lamb=0.0, 
+        lamb=0., 
         num_iters=30, 
-        lr=0.001
+        lr=1e-3,
     )
+    accuracy = []
 
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
@@ -145,9 +146,15 @@ def main(args):
         )
 
         # Starting latent analysis
-        print(f"compare noise : {compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))}")
         image_latents_w_modified = decoder_corrector(pipe.decode_image(image_latents_w)) # input as the image
-        print(f"noise after optimization : {compare_latents(image_latents_w, image_latents_w_modified)}")
+        original_error = compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))
+        corrected_error = compare_latents(image_latents_w, image_latents_w_modified)
+        print(f"compare error : {original_error}")
+        print(f"error after optimization : {corrected_error}\n")
+
+        single_improvement = (original_error-corrected_error)/original_error*100
+        print(f"Improvement : {single_improvement}%")
+        accuracy.append(single_improvement)
 
         # eval
         no_w_metric, w_metric = eval_watermark(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args)
@@ -176,6 +183,11 @@ def main(args):
 
             clip_scores.append(w_no_sim)
             clip_scores_w.append(w_sim)
+
+    # LKH
+    single_improvement = np.array(single_improvement)
+    print(f"improvement mean : {np.mean(single_improvement)}")
+    print(f"improvement std : {np.std(single_improvement)}")
 
     # roc
     preds = no_w_metrics +  w_metrics

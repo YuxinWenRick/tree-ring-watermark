@@ -1,8 +1,11 @@
 import torch
 from torch import nn
 
+def softThreshold(x, l):
+    return torch.sign(x) * torch.maximum(torch.abs(x)-l, torch.zeros(x.shape).to(x.device))
+
 class edcorrector():
-    def __init__(self, encoder, decoder, lamb, num_iters=30, lr=0.01):
+    def __init__(self, encoder, decoder, lamb, num_iters=300, lr=0.01):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
@@ -20,7 +23,16 @@ class edcorrector():
 
         Goal : minimize norm(e(x)-z) and norm(d(z)-x)
         """
-
+        z = self.encoder(x) # initial z
+        xf = x.float()
+        print(f"\titeration : start, norm : {torch.norm(self.decoder(z.half())-xf)}")
+        t = self.lr
+        for i in range(self.num_iters):
+            z = softThreshold(z + t * self.encoder(x - self.decoder(z.half())), self.lamb)
+            if i%1==0:
+                print(f"\titeration : {i}, norm : {torch.norm(self.decoder(z.half())-xf)}")
+        return z
+        """
         z = self.encoder(x)
         for i in range(self.num_iters):
             if i%10==0:
@@ -29,24 +41,7 @@ class edcorrector():
             z = z - self.lr * grad
 
         return z
-
-# import torch
-# from torch import nn
-
-# class simplenet(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.layers = nn.Sequential(
-#             nn.Conv2d(in_channels=3, out_channels=4, kernel_size=2, stride=2),
-#             nn.ReLU(),
-#             nn.Conv2d(in_channels=4, out_channels=4, kernel_size=2, stride=2),
-#             nn.ReLU(),
-#             nn.Conv2d(in_channels=4, out_channels=4, kernel_size=2, stride=2),
-#         )
-
-#     def forward(self, x):
-#         z = self.layers(x)
-#         return z
+        """
 
 # class edcorrector():
 #     def __init__(self, encoder, decoder, lamb, num_iters=100, lr=0.001):
