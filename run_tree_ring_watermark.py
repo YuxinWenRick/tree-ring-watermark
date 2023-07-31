@@ -9,6 +9,7 @@ import torch
 
 #from inverse_stable_diffusion_smh import InversableStableDiffusionPipeline
 from inverse_stable_diffusion import InversableStableDiffusionPipeline
+#from inverse_stable_diffusion_smh import InversableStableDiffusionPipeline
 from diffusers import DPMSolverMultistepScheduler
 import open_clip
 from optim_utils import *
@@ -145,11 +146,11 @@ def main(args):
         )
 
         # Starting latent analysis
-        image_latents_w_modified = pipe.edcorrector(pipe.decode_image(image_latents_w)) # input as the image
+        image_latents_w_modified = pipe.edcorrector(pipe.decode_image(image_latents_w), text_embeddings) # input as the image
         original_error = compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))
         corrected_error = compare_latents(image_latents_w, image_latents_w_modified)
         print(f"compare error : {original_error}")
-        print(f"error after optimization : {corrected_error}\n")
+        print(f"error after optimization : {corrected_error}")
 
         single_improvement = (original_error-corrected_error)/original_error*100
         print(f"Improvement : {single_improvement}%")

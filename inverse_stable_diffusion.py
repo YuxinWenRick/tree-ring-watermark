@@ -186,7 +186,8 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             )
         return latents
 
-    def edcorrector(self, x):
+    @torch.enable_grad()
+    def edcorrector(self, x, encoder_hidden_states):
         """
         INPUT
         x : image data (1, 3, 512, 512) -> given data
@@ -195,22 +196,27 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
 
         Goal : minimize norm(e(x)-z) and norm(d(z)-x)
         """
-        unet_copy = copy.deepcopy(self.unet).float()
+        unet_copy = copy.deepcopy(self.unet)
+        unet_copy = unet_copy.half()
         z = self.get_image_latents(x).clone() # initial z
-        print(z.shape)
         z.requires_grad_(True)
+        encoder_hidden_states = encoder_hidden_states.clone().requires_grad_(True)
+
         loss_function = torch.nn.MSELoss(reduction='sum')
-        optimizer = torch.optim.SGD([z], lr=self.lr)
+        optimizer = torch.optim.SGD([z], lr=1e-3)
 
-        for i in range(self.num_iters):
-            out = unet_copy(z, 0, None)
-            out = self.pipe.scheduler.convert_model_output(out, 0, z)
-            x_pred = self.pipe.scheduler.dpm_solver_first_order_update(out, 0, 0, z)
+        t = torch.Tensor([0]).to(z.device)
+        s = torch.Tensor([20]).to(z.device)
 
-            print(x_pred.shape)
+        z_comp = self.get_image_latents(x).clone().half()
 
-            loss = loss_function(x_pred, x)
-            print(f"t: {t}, Iteration {i}, Loss: {loss.item():.3f}")
+        for i in range(1000):
+            out = unet_copy(z, s, encoder_hidden_states).sample
+            out = self.scheduler.convert_model_output(out, 20, z)
+            z_pred = self.scheduler.dpm_solver_first_order_update(out, 20, 0, z)
+
+            loss = loss_function(z_pred, z_comp)
+            print(f"t: {0}, Iteration {i}, Loss: {loss.item():.3f}")
             if loss.item() < 0.001:
                 break
             optimizer.zero_grad()
