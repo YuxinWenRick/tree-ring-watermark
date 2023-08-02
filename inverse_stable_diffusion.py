@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Callable, List, Optional, Union, Tuple
 import copy
+import gc
 
 import torch
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
@@ -12,7 +13,6 @@ from diffusers.pipelines.stable_diffusion.safety_checker import \
 from diffusers.schedulers import DDIMScheduler,PNDMScheduler, LMSDiscreteScheduler
 
 from modified_stable_diffusion import ModifiedStableDiffusionPipeline
-
 
 ### credit to: https://github.com/cccntu/efficient-prompt-to-prompt
 
@@ -186,7 +186,6 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             )
         return latents
 
-    @torch.enable_grad()
     def edcorrector(self, x, encoder_hidden_states):
         """
         INPUT
@@ -196,11 +195,12 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
 
         Goal : minimize norm(e(x)-z) and norm(d(z)-x)
         """
-
-        # TODO : add decoder to evaluate loss on x, not z
+        input = x.clone().requires_grad_(True)
+        #decoder = copy.deepcopy(self.decode_image)
 
         unet_copy = copy.deepcopy(self.unet)
         unet_copy = unet_copy.half()
+
         z = self.get_image_latents(x).clone() # initial z
         z.requires_grad_(True)
         encoder_hidden_states = encoder_hidden_states.clone().requires_grad_(True)
@@ -211,16 +211,21 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         t = torch.Tensor([0]).to(z.device)
         s = torch.Tensor([20]).to(z.device)
 
-        z_comp = self.get_image_latents(x).clone().half() # must be deleted to make it right
-
         for i in range(1000):
-            out = unet_copy(z, s, encoder_hidden_states).sample
-            out = self.scheduler.convert_model_output(out, 20, z)
-            z_pred = self.scheduler.dpm_solver_first_order_update(out, 20, 0, z)
-
-            loss = loss_function(z_pred, z_comp)
-            #loss = loss_function(x_pred, x)
-            print(f"t: {0}, Iteration {i}, Loss: {loss.item():.3f}")
+            # Coding below creates no!! problem, problem is at z
+            # z = self.get_image_latents(x).clone().requires_grad_(True)
+            # calculation of z is the issue
+            print(torch.norm(z))
+            output = unet_copy(z, s, encoder_hidden_states).sample.clone()
+            #out = out_unet_copy.sample.clone()
+            output = self.scheduler.convert_model_output(output, 20, z)
+            z = self.scheduler.dpm_solver_first_order_update(output, 20, 0, z)
+            #x_pred = decoder(z)
+            x_pred = self.decode_image(z).clone().requires_grad_(True)
+            #loss = loss_function(z_pred, z_comp)
+            loss = loss_function(x_pred, input)
+            if i%10==0:
+                print(f"t: {0}, Iteration {i}, Loss: {loss.item():.3f}")
             if loss.item() < 0.001:
                 break
             optimizer.zero_grad()
