@@ -196,6 +196,9 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
 
         Goal : minimize norm(e(x)-z) and norm(d(z)-x)
         """
+
+        # TODO : add decoder to evaluate loss on x, not z
+
         unet_copy = copy.deepcopy(self.unet)
         unet_copy = unet_copy.half()
         z = self.get_image_latents(x).clone() # initial z
@@ -208,7 +211,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         t = torch.Tensor([0]).to(z.device)
         s = torch.Tensor([20]).to(z.device)
 
-        z_comp = self.get_image_latents(x).clone().half()
+        z_comp = self.get_image_latents(x).clone().half() # must be deleted to make it right
 
         for i in range(1000):
             out = unet_copy(z, s, encoder_hidden_states).sample
@@ -216,6 +219,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             z_pred = self.scheduler.dpm_solver_first_order_update(out, 20, 0, z)
 
             loss = loss_function(z_pred, z_comp)
+            #loss = loss_function(x_pred, x)
             print(f"t: {0}, Iteration {i}, Loss: {loss.item():.3f}")
             if loss.item() < 0.001:
                 break
