@@ -209,7 +209,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         optimizer = torch.optim.SGD([z], lr=1e-3)
 
         t = torch.Tensor([0]).to(z.device)
-        s = torch.Tensor([20]).to(z.device)
+        s = torch.Tensor([100]).to(z.device)
 
         for i in range(1000):
             # Coding below creates no!! problem, problem is at z
@@ -217,17 +217,16 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             # calculation of z is the issue
             print(torch.norm(z))
             output = unet_copy(z, s, encoder_hidden_states).sample.clone()
-            #out = out_unet_copy.sample.clone()
-            output = self.scheduler.convert_model_output(output, 20, z)
-            z = self.scheduler.dpm_solver_first_order_update(output, 20, 0, z)
-            #x_pred = decoder(z)
+            output = self.scheduler.convert_model_output(output, 100, z)
+            z = self.scheduler.dpm_solver_first_order_update(output, 100, 0, z)
             x_pred = self.decode_image(z).clone().requires_grad_(True)
-            #loss = loss_function(z_pred, z_comp)
+
             loss = loss_function(x_pred, input)
             if i%10==0:
                 print(f"t: {0}, Iteration {i}, Loss: {loss.item():.3f}")
             if loss.item() < 0.001:
                 break
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
