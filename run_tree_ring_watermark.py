@@ -4,8 +4,10 @@ import copy
 from tqdm import tqdm
 from statistics import mean, stdev
 from sklearn import metrics
+import matplotlib.pyplot as plt
 
 import torch
+from torchvision.transforms.functional import to_pil_image
 
 #from inverse_stable_diffusion_smh import InversableStableDiffusionPipeline
 from inverse_stable_diffusion import InversableStableDiffusionPipeline
@@ -66,13 +68,6 @@ def main(args):
     no_w_metrics = []
     w_metrics = []
 
-    # Defining corrector : LKH
-    decoder_corrector = edcorrector(
-        pipe = pipe,
-        lamb=0., 
-        num_iters=300, 
-        lr=1e-3,
-    ) # Not used for now, check : 230728, 1642
     accuracy = []
 
     for i in tqdm(range(args.start, args.end)):
@@ -149,12 +144,37 @@ def main(args):
         image_latents_w_modified = pipe.edcorrector(pipe.decode_image(image_latents_w), text_embeddings) # input as the image
         original_error = compare_latents(image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)))
         corrected_error = compare_latents(image_latents_w, image_latents_w_modified)
+        single_improvement = (original_error-corrected_error)/original_error*100
+
         print(f"compare error : {original_error}")
         print(f"error after optimization : {corrected_error}")
-
-        single_improvement = (original_error-corrected_error)/original_error*100
         print(f"Improvement : {single_improvement}%")
+        
         accuracy.append(single_improvement)
+
+        # Latent, pipe -> draw image, maybe good to make clean code
+        """
+        # check on image_latents_w, pipe.get_image_latents(pipe.decode_image(image_latents_w)), image_latents_w_modified
+        img = (pipe.decode_image(image_latents_w)/2+0.5).clamp(0, 1)
+        img_wo_correction = (pipe.decode_image(pipe.get_image_latents(pipe.decode_image(image_latents_w)))/2+0.5).clamp(0, 1)
+        img_w_correction = (pipe.decode_image(image_latents_w_modified)/2+0.5).clamp(0, 1)
+
+        #img = outputs_0.cpu().permute(0, 2, 3, 1)
+        #img_wo_correction = outputs_1.images[0]
+        #img_w_correction = outputs_2.images[0]
+
+        plt.figure()
+        plt.subplot(1,3,1)
+        plt.imshow(to_pil_image(img[0]))
+        plt.title("z")
+        plt.subplot(1,3,2)
+        plt.imshow(to_pil_image(img_wo_correction[0]))
+        plt.title("E(D(z))")
+        plt.subplot(1,3,3)
+        plt.imshow(to_pil_image(img_w_correction[0]))
+        plt.title("E*(D(z))")
+        plt.show()
+        """
 
         # eval
         no_w_metric, w_metric = eval_watermark(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args)
