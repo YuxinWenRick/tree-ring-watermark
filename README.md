@@ -13,6 +13,7 @@ We propose Tree-Ring Watermarking to watermark diffusion model outputs. Tree-Rin
 - PyTorch == 1.13.0
 - transformers == 4.23.1
 - diffusers == 0.11.1
+- datasets
 
 Note: higher diffusers version may not be compatible with the DDIM inversion code.
 
@@ -40,6 +41,9 @@ Then, to calculate FID, you may run:
 ```
 python latent_watermark_fourier_fid.py --run_name fid_run --w_channel 3 --w_pattern ring --start 0 --end 5000 --with_tracking --run_no_w
 ```
+
+### Perform main experiments for Imagenet Models
+You can get the pre-trained models [here](https://github.com/openai/guided-diffusion). For example, the link of the model used by the paper is [256x256 diffusion](https://openaipublic.blob.core.windows.net/diffusion/jul-2021/256x256_diffusion.pt). Then, you may follow the [script](scripts/tree_ring_imagenet.sh) to run the experiments.
 
 ## Parameters
 Crucial hyperparameters for Tree-Ring:

@@ -1,0 +1,16 @@
+{
+    "model_path": "256x256_diffusion.pt",
+    "attention_resolutions": "32,16,8",
+    "class_cond": true,
+    "diffusion_steps": 1000,
+    "image_size": 256,
+    "learn_sigma": true,
+    "noise_schedule": "linear",
+    "num_channels": 256,
+    "num_head_channels": 64,
+    "num_res_blocks": 2,
+    "resblock_updown": true,
+    "use_fp16": false,
+    "use_scale_shift_norm": true,
+    "classifier_scale": 0
+}
