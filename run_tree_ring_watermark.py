@@ -28,7 +28,7 @@ def main(args):
     pipe = InversableStableDiffusionPipeline.from_pretrained(
         args.model_id,
         scheduler=scheduler,
-        torch_dtype=torch.float16,
+        torch_dtype=torch.float32,
         revision='fp16',
         )
     pipe = pipe.to(device)
