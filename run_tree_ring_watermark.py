@@ -138,8 +138,8 @@ def main(args):
             'no_w_metric': no_w_metric, 'w_metric': w_metric, 'w_no_sim': w_no_sim, 'w_sim': w_sim,
         })
 
-        no_w_metrics.append(no_w_metric)
-        w_metrics.append(w_metric)
+        no_w_metrics.append(-no_w_metric)
+        w_metrics.append(-w_metric)
 
         if args.with_tracking:
             if (args.reference_model is not None) and (i < args.max_num_log_image):
@@ -153,7 +153,7 @@ def main(args):
 
     # roc
     preds = no_w_metrics +  w_metrics
-    t_labels = [1] * len(no_w_metrics) + [0] * len(w_metrics)
+    t_labels = [0] * len(no_w_metrics) + [1] * len(w_metrics)
 
     fpr, tpr, thresholds = metrics.roc_curve(t_labels, preds, pos_label=1)
     auc = metrics.auc(fpr, tpr)
