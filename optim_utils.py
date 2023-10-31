@@ -8,6 +8,7 @@ import numpy as np
 import copy
 from typing import Any, Mapping
 import json
+import scipy
 
 
 def read_json(filename: str) -> Mapping[str, Any]:
@@ -226,3 +227,27 @@ def eval_watermark(reversed_latents_no_w, reversed_latents_w, watermarking_mask,
         NotImplementedError(f'w_measurement: {args.w_measurement}')
 
     return no_w_metric, w_metric
+
+def get_p_value(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args):
+    # assume it's Fourier space wm
+    reversed_latents_no_w_fft = torch.fft.fftshift(torch.fft.fft2(reversed_latents_no_w), dim=(-1, -2))[watermarking_mask].flatten()
+    reversed_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(reversed_latents_w), dim=(-1, -2))[watermarking_mask].flatten()
+    target_patch = gt_patch[watermarking_mask].flatten()
+
+    target_patch = torch.concatenate([target_patch.real, target_patch.imag])
+    
+    # no_w
+    reversed_latents_no_w_fft = torch.concatenate([reversed_latents_no_w_fft.real, reversed_latents_no_w_fft.imag])
+    sigma_no_w = reversed_latents_no_w_fft.std()
+    lambda_no_w = (target_patch ** 2 / sigma_no_w ** 2).sum().item()
+    x_no_w = (((reversed_latents_no_w_fft - target_patch) / sigma_no_w) ** 2).sum().item()
+    p_no_w = scipy.stats.ncx2.cdf(x=x_no_w, df=len(target_patch), nc=lambda_no_w)
+
+    # w
+    reversed_latents_w_fft = torch.concatenate([reversed_latents_w_fft.real, reversed_latents_w_fft.imag])
+    sigma_w = reversed_latents_w_fft.std()
+    lambda_w = (target_patch ** 2 / sigma_w ** 2).sum().item()
+    x_w = (((reversed_latents_w_fft - target_patch) / sigma_w) ** 2).sum().item()
+    p_w = scipy.stats.ncx2.cdf(x=x_w, df=len(target_patch), nc=lambda_w)
+
+    return p_no_w, p_w
