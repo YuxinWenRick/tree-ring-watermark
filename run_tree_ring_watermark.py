@@ -19,7 +19,7 @@ def main(args):
     if args.with_tracking:
         wandb.init(project='diffusion_watermark', name=args.run_name, tags=['tree_ring_watermark'])
         wandb.config.update(args)
-        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric'])
+        table = wandb.Table(columns=['gen_no_w', 'no_w_clip_score', 'gen_w', 'w_clip_score', 'prompt', 'no_w_metric', 'w_metric', 'no_w_p_val', 'w_p_val'])
     
     # load diffusion model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -43,7 +43,7 @@ def main(args):
 
     tester_prompt = '' # assume at the detection time, the original prompt is unknown
     text_embeddings = pipe.get_text_embedding(tester_prompt)
-
+    
     # ground-truth patch
     gt_patch = get_watermarking_pattern(pipe, args, device)
 
@@ -56,7 +56,7 @@ def main(args):
     for i in tqdm(range(args.start, args.end)):
         seed = i + args.gen_seed
         
-        current_prompt = dataset[i][prompt_key]
+        current_prompt = dataset[i][prompt_key] 
         
         ### generation
         # generation without watermarking
@@ -125,6 +125,8 @@ def main(args):
 
         # eval
         no_w_metric, w_metric = eval_watermark(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args)
+        
+        no_w_p_val, w_p_val = get_p_value(reversed_latents_no_w, reversed_latents_w, watermarking_mask, gt_patch, args)
 
         if args.reference_model is not None:
             sims = measure_similarity([orig_image_no_w, orig_image_w], current_prompt, ref_model, ref_clip_preprocess, ref_tokenizer, device)
@@ -137,16 +139,18 @@ def main(args):
         results.append({
             'no_w_metric': no_w_metric, 'w_metric': w_metric, 'w_no_sim': w_no_sim, 'w_sim': w_sim,
         })
+        #Append p values
+        results.append({'no_w_p_val': no_w_p_val, 'w_p_val': w_p_val})
 
         no_w_metrics.append(no_w_metric)
         w_metrics.append(w_metric)
-
+        
         if args.with_tracking:
             if (args.reference_model is not None) and (i < args.max_num_log_image):
                 # log images when we use reference_model
-                table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric)
+                table.add_data(wandb.Image(orig_image_no_w), w_no_sim, wandb.Image(orig_image_w), w_sim, current_prompt, no_w_metric, w_metric, no_w_p_val, w_p_val)
             else:
-                table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric)
+                table.add_data(None, w_no_sim, None, w_sim, current_prompt, no_w_metric, w_metric, no_w_p_val, w_p_val)
 
             clip_scores.append(w_no_sim)
             clip_scores_w.append(w_sim)
