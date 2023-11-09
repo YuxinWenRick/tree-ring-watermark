@@ -135,3 +135,6 @@ log/
 tmp*.png
 wandb/
 fid_outputs/
+
+# Train files
+train.sh
