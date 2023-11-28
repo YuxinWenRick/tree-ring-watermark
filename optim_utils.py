@@ -143,16 +143,6 @@ def get_watermarking_mask(init_latents_w, args, device):
             watermarking_mask[:, args.w_channel, anchor_p-args.w_radius:anchor_p+args.w_radius, anchor_p-args.w_radius:anchor_p+args.w_radius] = True
     elif args.w_mask_shape == 'no':
         pass
-    elif args.w_mask_shape == 'ring-tol':
-        np_mask = circle_mask(init_latents_w.shape[-1], r=args.w_radius)
-        torch_mask = torch.tensor(np_mask).to(device)
-        torch_mask.map(lambda x: np.random.rand() if abs(x) < 0.0001 else x)
-
-        if args.w_channel == -1:
-            # all channels
-            watermarking_mask[:, :] = torch_mask
-        else:
-            watermarking_mask[:, args.w_channel] = torch_mask
     else:
         raise NotImplementedError(f'w_mask_shape: {args.w_mask_shape}')
 
@@ -198,8 +188,7 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
             
             for j in range(gt_patch.shape[1]):
                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
-    elif 'ring_tol' in args.w_pattern:
-        tol = 0.0001
+    elif 'ring-tol' in args.w_pattern:
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
 
         gt_patch_tmp = copy.deepcopy(gt_patch)
@@ -209,7 +198,6 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
             
             for j in range(gt_patch.shape[1]):
                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
-        gt_patch = np.where(abs(gt_patch) > tol, gt_patch, np.random.standard_normal())
 
     return gt_patch
 

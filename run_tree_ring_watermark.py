@@ -13,6 +13,11 @@ import open_clip
 from optim_utils import *
 from io_utils import *
 
+def test(x):
+    if abs(x) < 0.01:
+        return test(x)
+    return torch.randn(1)[0]
+
 
 def main(args):
     table = None
@@ -77,11 +82,14 @@ def main(args):
         if init_latents_no_w is None:
             set_random_seed(seed)
             init_latents_w = pipe.get_random_latents()
+            if "ring_tol" in args.w_pattern:
+                init_latents_w.map(lambda x: test(x) if abs(x) < 0.01 else x)
         else:
             init_latents_w = copy.deepcopy(init_latents_no_w)
 
         # get watermarking mask
         watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
+        wandb.log({"mask": watermarking_mask})
 
         # inject watermark
         init_latents_w = inject_watermark(init_latents_w, watermarking_mask, gt_patch, args)
