@@ -96,13 +96,10 @@ def main(args):
         if init_latents_no_w is None:
             set_random_seed(seed)
             init_latents_w = pipe.get_random_latents()
-            if "ring_tol" in args.w_pattern:
-                init_latents_w.apply_(lambda x: test(x) if abs(x) < tol else x)
-            elif "ring_alt" in args.w_pattern:
-                init_latents_w.apply_(lambda x: alt(x))
         else:
             init_latents_w = copy.deepcopy(init_latents_no_w)
-
+        if "ring_alt" in args.w_pattern:
+            init_latents_w.apply_(lambda x: alt(x))
         # get watermarking mask
         watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
 
