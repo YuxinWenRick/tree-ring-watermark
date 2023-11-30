@@ -99,7 +99,7 @@ def main(args):
             if "ring_tol" in args.w_pattern:
                 init_latents_w.apply_(lambda x: test(x) if abs(x) < tol else x)
             elif "ring_alt" in args.w_pattern:
-                init_latents_w.apply(lambda x: alt(x))
+                init_latents_w.apply_(lambda x: alt(x))
         else:
             init_latents_w = copy.deepcopy(init_latents_no_w)
 
