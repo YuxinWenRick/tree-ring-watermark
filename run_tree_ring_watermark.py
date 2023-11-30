@@ -20,6 +20,7 @@ def test(x):
     return torch.randn(1)[0]
 positive = True
 def alt(x):
+    global positive
     if positive:
         positive = not positive 
         if x < 0:
