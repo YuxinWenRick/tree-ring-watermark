@@ -178,7 +178,7 @@ def get_watermarking_pattern(pipe, args, device, shape=None):
     elif 'const' in args.w_pattern:
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2)) * 0
         gt_patch += args.w_pattern_const
-    elif 'ring' in args.w_pattern:
+    elif 'ring' or 'ring_alt'  in args.w_pattern:
         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
 
         gt_patch_tmp = copy.deepcopy(gt_patch)

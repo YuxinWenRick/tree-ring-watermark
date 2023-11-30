@@ -18,6 +18,18 @@ def test(x):
     if abs(x) < tol:
         return tol+x if x < 0 else x-tol
     return torch.randn(1)[0]
+positive = True
+def alt(x):
+    if positive:
+        positive = not positive 
+        if x < 0:
+            return -x
+        return x
+    else:
+        positive = not positive 
+        if x > 0:
+            return -x
+        return x
 
 
 def main(args):
@@ -85,6 +97,8 @@ def main(args):
             init_latents_w = pipe.get_random_latents()
             if "ring_tol" in args.w_pattern:
                 init_latents_w.apply_(lambda x: test(x) if abs(x) < tol else x)
+            elif "ring_alt" in args.w_pattern:
+                init_latents_w.apply(lambda x: alt(x))
         else:
             init_latents_w = copy.deepcopy(init_latents_no_w)
 
