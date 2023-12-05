@@ -14,7 +14,7 @@ from optim_utils import *
 from io_utils import *
 
 tol = 0.01
-def test(x):
+def tol(x):
     if abs(x) < tol:
         return tol+x if x < 0 else x-tol
     return torch.randn(1)[0]
@@ -101,7 +101,7 @@ def main(args):
         if "ring_alt" in args.w_pattern:
             init_latents_w.apply_(lambda x: alt(x))        
         if "ring_tol" in args.w_pattern:
-                init_latents_w.apply_(lambda x: test(x) if abs(x) < tol else x)
+                init_latents_w.apply_(lambda x: tol(x) if abs(x) < tol else x)
 
         # get watermarking mask
         watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
