@@ -99,7 +99,10 @@ def main(args):
         else:
             init_latents_w = copy.deepcopy(init_latents_no_w)
         if "ring_alt" in args.w_pattern:
-            init_latents_w.apply_(lambda x: alt(x))
+            init_latents_w.apply_(lambda x: alt(x))        
+        if "ring_tol" in args.w_pattern:
+                init_latents_w.apply_(lambda x: test(x) if abs(x) < tol else x)
+
         # get watermarking mask
         watermarking_mask = get_watermarking_mask(init_latents_w, args, device)
 
