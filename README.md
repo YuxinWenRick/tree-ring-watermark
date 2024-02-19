@@ -39,7 +39,7 @@ You can download 5000 COCO examples used in the paper [here](https://drive.googl
 
 Then, to calculate FID, you may run:
 ```
-python latent_watermark_fourier_fid.py --run_name fid_run --w_channel 3 --w_pattern ring --start 0 --end 5000 --with_tracking --run_no_w
+python run_tree_ring_watermark_fid.py --run_name fid_run --w_channel 3 --w_pattern ring --start 0 --end 5000 --with_tracking --run_no_w
 ```
 
 ### Perform main experiments for Imagenet Models
