@@ -8,4 +8,4 @@ python run_tree_ring_watermark_imagenet.py --run_name imgnet_noise --model_id 25
 python run_tree_ring_watermark_imagenet.py --run_name imgnet_color_jitter --model_id 256x256_diffusion --w_radius 10 --w_channel 2 --w_pattern ring --start 0 --end 1000 --brightness_factor 6 --with_tracking
 
 ### fid
-python run_tree_ring_watermark_imagenet_fid.py --run_name imgnet_fid_run --gt_data imagenet --model_id 256x256_diffusion --w_radius 10 --w_channel 2 --w_pattern ring --start 0 --end 10000 --with_tracking --reference_model dummy
+python run_tree_ring_watermark_imagenet_fid.py --run_name imgnet_fid_run --gt_data imagenet --model_id 256x256_diffusion --w_radius 10 --w_channel 2 --w_pattern ring --start 0 --end 10000 --with_tracking
